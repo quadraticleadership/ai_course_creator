@@ -165,15 +165,51 @@ Future courses (not in current scope): NLP, Wedding.
 
 ## Tech Stack
 
+The platform has two distinct scaling profiles. The stacks are chosen accordingly.
+
+### Course Builder (internal — ~5–10 users)
+
 | Layer | Choice | Notes |
 |---|---|---|
-| Framework | Next.js (React) | App Router; serves all three interfaces |
-| Database | Supabase (PostgreSQL) | Row Level Security enforces course isolation |
-| Auth | Google OAuth via Supabase | Single sign-on — same Google login as existing sites |
-| Hosting | Vercel | Custom subdomain per course; zero-ops deploys from git |
+| Framework | Next.js (React) | App Router |
+| Database | Supabase (PostgreSQL) | RLS for access control; built-in dashboard useful for content inspection |
+| Auth | Google OAuth via Supabase | Same Google login as existing sites |
+| Hosting | Vercel | |
+| Storage | Supabase Storage | Course assets, transmission scripts, prompt files |
+
+### Student Portal (thousands of users, hundreds simultaneous)
+
+| Layer | Choice | Notes |
+|---|---|---|
+| Framework | Next.js (React) | Same codebase, routed by `Host` header |
+| Database | Neon (PostgreSQL) | Serverless Postgres; built-in PgBouncer connection pooling; autoscales for Vercel serverless |
+| ORM | Drizzle | Type-safe, lightweight, no heavy runtime |
+| Auth | Auth.js (NextAuth v5) | Google OAuth; no Supabase dependency in the student path |
+| Background Jobs | Inngest | Async: assessment processing, material finalization, CI engine, pre-session briefings |
+| Hosting | Vercel | Custom subdomain per course |
+| Storage | S3 or GCS | Audio/video uploads from student sessions |
 | AI | Anthropic Claude API | `claude-sonnet-4-6` default; `claude-opus-4-6` for generation tasks |
-| Voice | ElevenLabs | TTS + teacher voice clone |
-| Storage | Supabase Storage (Phase 1), migrate to S3/GCS if needed | Audio/video uploads |
+| Voice | ElevenLabs | TTS + teacher voice clone; streamed for voice interview mode |
+
+### Live Training Dashboard
+
+Reads from Neon. Hosted on Vercel. Auth via Auth.js (same Google OAuth).
+
+### Data Flow: Builder → Portal
+
+Courses are designed and configured in the Course Builder (Supabase). On publish, course
+configuration (modules, component prompts, materials schema, course story pool) is written
+to Neon. Neon is the runtime database — all student activity flows through it.
+
+### Key Patterns
+
+- **AI responses must be streamed** — never buffer a full response before sending. Essential
+  for voice interview UX with hundreds of concurrent users.
+- **Heavy AI tasks run async via Inngest** — assessment processing, material finalization,
+  CI engine analysis, pre-session briefing generation. None of these block the student.
+- **Neon connection pooling** — Neon's built-in PgBouncer is required. Vercel serverless opens
+  a new DB connection per invocation; without pooling, hundreds of simultaneous users will
+  exhaust connections.
 
 ## Coding Conventions
 
@@ -182,8 +218,11 @@ Future courses (not in current scope): NLP, Wedding.
 - Prompts are treated as code — they live in `prompts/`, are version controlled, and are
   referenced by the application by file path
 - All data models carry `course_id` — multi-tenant from day 1
-- Use Supabase Row Level Security for course-scoped data access
+- Course Builder: use Supabase Row Level Security for access control
+- Student Portal: use Drizzle with Neon; enforce course isolation at the query layer
 - Route student portal by `Host` header in Next.js middleware
+- All AI calls in the student portal must use streaming responses
+- All non-blocking work (assessments, material gen, briefings) must go through Inngest jobs
 
 ---
 

@@ -37,9 +37,16 @@ Do not let decisions live only in chat.
 | R12 | Clear Story Audit step | AI searches full library (10,000+) → returns 100-200 relevant stories → human curates → AI clusters into modules | 2026-02-22 | Course story pool is the curated subset used at runtime |
 | R13 | Prompts treated as code | All AI prompts live in `prompts/` directory, version controlled | 2026-02-22 | |
 | R14 | Primary AI model | Claude (Anthropic API) — `claude-sonnet-4-6` default, `claude-opus-4-6` for complex generation tasks | 2026-02-23 | Long context window critical for cumulative_context injection |
-| R15 | Database | Supabase (PostgreSQL) | 2026-02-23 | Chosen for: built-in Google OAuth, storage, auto-generated REST API, dashboard for data inspection |
-| R16 | Auth method | Google OAuth via Supabase | 2026-02-23 | Both existing sites (relationshipdynamics.com, coachingos.com) use Google Auth — no second login for students |
+| R15 | Course Builder database | Supabase (PostgreSQL) | 2026-02-23 | Internal tool (~5–10 users). Chosen for: built-in Google OAuth, storage, dashboard for content inspection, RLS |
+| R16 | Auth method — Course Builder | Google OAuth via Supabase | 2026-02-23 | Course Architects, Teachers, TAs |
 | R17 | App framework + hosting | Next.js (React) + Vercel | 2026-02-23 | One codebase for all three interfaces; Vercel handles per-course custom subdomain routing; zero-ops deploys |
 | R18 | Course portal domains | learn.relationshipdynamics.com (RSM), learn.coachingos.com (TAN) | 2026-02-23 | Subdomain approach — existing sites keep their root domains |
 | R19 | Courses built in Phase 1 | Relationship Skills Mastery (RSM) + Trusted Advisor Network (TAN) simultaneously | 2026-02-23 | Two courses at once forces proper multi-tenant abstraction; both have existing video content to migrate |
-| R20 | Multi-tenant architecture | Course-scoped from day 1 — all data records carry course_id; portal routes by Host header | 2026-02-23 | Same Next.js app serves both portals; Supabase Row Level Security enforces course isolation |
+| R20 | Multi-tenant architecture | Course-scoped from day 1 — all data records carry course_id; portal routes by Host header | 2026-02-23 | Same Next.js app serves both portals; course isolation enforced at query layer on Neon |
+| R21 | Student Portal database | Neon (PostgreSQL) | 2026-02-23 | Thousands of users, hundreds simultaneous. Neon chosen for: serverless-native, built-in PgBouncer connection pooling (essential for Vercel serverless), autoscale compute, pay-per-use |
+| R22 | Student Portal ORM | Drizzle | 2026-02-23 | Type-safe, lightweight, no heavy runtime. Works with Neon's serverless driver |
+| R23 | Auth method — Student Portal | Auth.js (NextAuth v5) with Google OAuth | 2026-02-23 | No Supabase dependency in the student path; same Google OAuth so no second login for students |
+| R24 | Background job queue | Inngest | 2026-02-23 | All non-blocking AI work (assessment processing, material finalization, CI engine, pre-session briefing generation) runs as Inngest jobs. Students are never blocked waiting for heavy AI tasks. |
+| R25 | AI response strategy | Streaming required for Student Portal | 2026-02-23 | Full response buffering is unacceptable at scale. All Claude API calls in the student path must use streaming. |
+| R26 | Course publish data flow | Course Builder (Supabase) → publish → Neon | 2026-02-23 | Course config (modules, prompts, materials schema, story pool) written to Neon on publish. Neon is the sole runtime DB. |
+| R27 | Student Portal storage | S3 or GCS | 2026-02-23 | Audio/video uploads from student sessions. Not Supabase Storage (different DB layer). |

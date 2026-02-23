@@ -110,7 +110,8 @@ AI generates: sales page, FAQ, fulfillment email sequence, Skool welcome post, l
 agenda templates. Human reviews and approves each.
 
 ### Step 7 — Publish
-- Course deployed to its domain (AWS/GCP)
+- Course configuration written from Supabase → Neon (publish event)
+- Course live on its Vercel subdomain
 - GHL pipeline activated
 - Skool group configured via 21 Grahams
 
@@ -345,9 +346,12 @@ Grid of all students showing:
 - Payload: text. Response: ranked Clear Story objects.
 
 ### Infrastructure
-- Student Portal: hosted per-course on our domains, AWS or GCP
-- Storage: S3 or GCS for audio/video
-- Database: [see decisions.md]
+- Student Portal: hosted on Vercel, per-course custom subdomains
+- Database (Student Portal): Neon (serverless Postgres) — connection pooling via built-in PgBouncer
+- Database (Course Builder): Supabase (Postgres) — internal only, small user count
+- Storage: S3 or GCS for student audio/video uploads; Supabase Storage for course builder assets
+- Background jobs: Inngest — all async AI processing (assessments, material gen, briefings, CI engine)
+- See `decisions.md` R21–R27 for full rationale
 
 ---
 
