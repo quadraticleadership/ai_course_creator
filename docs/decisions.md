@@ -9,18 +9,13 @@ Do not let decisions live only in chat.
 
 | # | Decision | Options | Notes |
 |---|---|---|---|
-| 1 | Primary AI model | Claude (Anthropic), GPT-4o (OpenAI) | Claude recommended for long-context, nuanced conversation |
-| 2 | STT (speech-to-text) for voice interviews | OpenAI Whisper, Deepgram, AssemblyAI | Deepgram recommended for real-time streaming |
-| 3 | Video analysis (sentiment + facial expression) | AWS Rekognition, Hume AI | Hume AI recommended — emotion-specific |
-| 4 | Database | Supabase (Postgres), AWS RDS Postgres, PlanetScale | Supabase recommended for speed of development |
-| 5 | App hosting / deployment | AWS ECS containers, Google Cloud Run, static + lambda | Cloud Run recommended for simplest ops |
-| 6 | Materials export format | PDF, plain HTML page on-domain, Notion | Plain HTML page recommended (keeps student on-domain) |
-| 7 | Full list of 21 Grahams Skool actions needed | TBD | Need to define with Graham before building integration |
-| 8 | Teacher voice clone onboarding process | ElevenLabs flow | Need to define per-teacher recording requirements (duration, format, environment) |
-| 9 | Transcription at scale (async batch) | OpenAI Whisper, Deepgram, AssemblyAI | Deepgram recommended |
-| 10 | Platform name | TBD | No name chosen yet |
-| 11 | Course domains | TBD per course | e.g., app.stopdivorce.com — confirm domain ownership + DNS setup needed |
-| 12 | Auth method for Student Portal | Magic link (email), password, SSO | Magic link recommended — frictionless, driven by GHL enrollment email |
+| 2 | STT (speech-to-text) for voice interviews | OpenAI Whisper, Deepgram, AssemblyAI | Deepgram recommended for real-time streaming. Not blocking Phase 1. |
+| 3 | Video analysis (sentiment + facial expression) | AWS Rekognition, Hume AI | Hume AI recommended — emotion-specific. Not blocking Phase 1 (Phase 5). |
+| 6 | Materials export format | PDF, plain HTML page on-domain, Notion | Plain HTML page recommended (keeps student on-domain). Not blocking Phase 1. |
+| 7 | Full list of 21 Grahams Skool actions needed | TBD | Need to define with Graham before building integration. Not blocking Phase 1. |
+| 8 | Teacher voice clone onboarding process | ElevenLabs flow | Need to define per-teacher recording requirements (duration, format, environment). Not blocking Phase 1. |
+| 9 | Transcription at scale (async batch) | OpenAI Whisper, Deepgram, AssemblyAI | Deepgram recommended. Not blocking Phase 1. |
+| 10 | Platform name | TBD | No name chosen yet. Not blocking Phase 1. |
 
 ---
 
@@ -41,3 +36,10 @@ Do not let decisions live only in chat.
 | R11 | Clear Story definition | The raw 4-part unit: You Think / But Really / So If You Just / Then You'll Get | 2026-02-22 | |
 | R12 | Clear Story Audit step | AI searches full library (10,000+) → returns 100-200 relevant stories → human curates → AI clusters into modules | 2026-02-22 | Course story pool is the curated subset used at runtime |
 | R13 | Prompts treated as code | All AI prompts live in `prompts/` directory, version controlled | 2026-02-22 | |
+| R14 | Primary AI model | Claude (Anthropic API) — `claude-sonnet-4-6` default, `claude-opus-4-6` for complex generation tasks | 2026-02-23 | Long context window critical for cumulative_context injection |
+| R15 | Database | Supabase (PostgreSQL) | 2026-02-23 | Chosen for: built-in Google OAuth, storage, auto-generated REST API, dashboard for data inspection |
+| R16 | Auth method | Google OAuth via Supabase | 2026-02-23 | Both existing sites (relationshipdynamics.com, coachingos.com) use Google Auth — no second login for students |
+| R17 | App framework + hosting | Next.js (React) + Vercel | 2026-02-23 | One codebase for all three interfaces; Vercel handles per-course custom subdomain routing; zero-ops deploys |
+| R18 | Course portal domains | learn.relationshipdynamics.com (RSM), learn.coachingos.com (TAN) | 2026-02-23 | Subdomain approach — existing sites keep their root domains |
+| R19 | Courses built in Phase 1 | Relationship Skills Mastery (RSM) + Trusted Advisor Network (TAN) simultaneously | 2026-02-23 | Two courses at once forces proper multi-tenant abstraction; both have existing video content to migrate |
+| R20 | Multi-tenant architecture | Course-scoped from day 1 — all data records carry course_id; portal routes by Host header | 2026-02-23 | Same Next.js app serves both portals; Supabase Row Level Security enforces course isolation |

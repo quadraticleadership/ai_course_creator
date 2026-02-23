@@ -115,8 +115,9 @@ during the `clear_story` component (instead of searching all 10,000).
 ## Three Primary Interfaces
 
 1. **Course Builder** — internal tool for Course Architects to create and manage courses
-2. **Student Portal** — hosted per-course on our own domains (e.g., app.stopdivorce.com), served
-   from AWS or GCP. Not a CMS — the platform generates and hosts these pages directly.
+2. **Student Portal** — hosted per-course on subdomains (learn.relationshipdynamics.com,
+   learn.coachingos.com). Same Next.js app routes by Host header. Not a CMS — the platform
+   generates and hosts these pages directly.
 3. **Live Training Dashboard** — for Teachers and TAs during live Zoom sessions and co-work
 
 ---
@@ -137,10 +138,14 @@ external course creators (for now).
 
 ## Courses In Scope
 
-- **Stop Your Divorce** — domain: stopdivorce.com (TBC)
-- **Trusted Advisor** — B2B sales / relationship selling
-- **NLP** — (details TBD)
-- **Wedding** — (details TBD)
+Both courses are built simultaneously to enforce proper multi-tenant abstraction.
+
+| Course | Short Name | Domain | Focus |
+|---|---|---|---|
+| Relationship Skills Mastery | RSM | learn.relationshipdynamics.com | Personal relationship transformation |
+| Trusted Advisor Network | TAN | learn.coachingos.com | B2B sales / relationship selling |
+
+Future courses (not in current scope): NLP, Wedding.
 
 ---
 
@@ -152,17 +157,33 @@ external course creators (for now).
 | Complete data model | `docs/data-model.md` |
 | All assets needed per course | `docs/asset-taxonomy.md` |
 | Open + resolved decisions | `docs/decisions.md` |
-| Stop Your Divorce course spec | `docs/courses/stop-your-divorce.md` |
+| RSM course spec | `docs/courses/relationship-skills-mastery.md` |
+| TAN course spec | `docs/courses/trusted-advisor-network.md` |
 | AI prompts | `prompts/` (subdirectory per component type) |
 
 ---
 
-## Coding Conventions (update as established)
+## Tech Stack
 
-- TBD once tech stack decisions are finalized (see `docs/decisions.md`)
+| Layer | Choice | Notes |
+|---|---|---|
+| Framework | Next.js (React) | App Router; serves all three interfaces |
+| Database | Supabase (PostgreSQL) | Row Level Security enforces course isolation |
+| Auth | Google OAuth via Supabase | Single sign-on — same Google login as existing sites |
+| Hosting | Vercel | Custom subdomain per course; zero-ops deploys from git |
+| AI | Anthropic Claude API | `claude-sonnet-4-6` default; `claude-opus-4-6` for generation tasks |
+| Voice | ElevenLabs | TTS + teacher voice clone |
+| Storage | Supabase Storage (Phase 1), migrate to S3/GCS if needed | Audio/video uploads |
+
+## Coding Conventions
+
+- TypeScript throughout
 - Always read the relevant spec doc before writing any component
 - Prompts are treated as code — they live in `prompts/`, are version controlled, and are
   referenced by the application by file path
+- All data models carry `course_id` — multi-tenant from day 1
+- Use Supabase Row Level Security for course-scoped data access
+- Route student portal by `Host` header in Next.js middleware
 
 ---
 
@@ -170,6 +191,5 @@ external course creators (for now).
 
 - Do not build a CMS. Pages are generated and hosted directly.
 - Do not over-engineer for external users. This is internal tooling.
-- Do not start building before reading `docs/decisions.md` — several tech stack decisions
-  are still open and will affect architecture.
+- Do not hardcode anything course-specific — both RSM and TAN must work from shared code.
 - Do not store important decisions only in chat. Update docs immediately when decisions are made.
