@@ -20,6 +20,9 @@ build/
 # drizzle
 drizzle/migrations/meta/
 
+# exports
+*.zip
+
 # misc
 .DS_Store
 *.pem
